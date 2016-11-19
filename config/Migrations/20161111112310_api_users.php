@@ -34,6 +34,6 @@ class ApiUsers extends AbstractMigration
     }
     public function down()
     {
-        $this->dropTable('users');
+        $this->dropTable('api_users');
     }
 }

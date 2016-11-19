@@ -76,6 +76,13 @@ Router::scope('/employees', function ($routes) {
     $routes->connect('/edit/:id', ['controller' => 'Employees', 'action' => 'edit'], ['id' => '\d+', 'pass' => ['id']]);
     $routes->connect('/delete/:id', ['controller' => 'Employees', 'action' => 'delete'], ['id' => '\d+', 'pass' => ['id']]);
 });
+Router::scope('/customers', function ($routes) {
+    $routes->connect('/', ['controller' => 'Customers', 'action' => 'index']);
+    $routes->connect('/add', ['controller' => 'Customers', 'action' => 'add']);
+    $routes->connect('/view/:id', ['controller' => 'Customers', 'action' => 'view'], ['id' => '\d+', 'pass' => ['id']]);
+    $routes->connect('/edit/:id', ['controller' => 'Customers', 'action' => 'edit'], ['id' => '\d+', 'pass' => ['id']]);
+    $routes->connect('/delete/:id', ['controller' => 'Customers', 'action' => 'delete'], ['id' => '\d+', 'pass' => ['id']]);
+});
 
 
 Router::prefix('api', function ($routes) {
@@ -89,6 +96,7 @@ Router::prefix('api', function ($routes) {
     Router::connect('/api/api-users/token', ['controller' => 'ApiUsers', 'action' => 'token', 'prefix' => 'api']);
 
     $routes->resources('Employees');
+    $routes->resources('Customers');
 
     $routes->fallbacks('InflectedRoute');
 });
