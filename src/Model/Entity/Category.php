@@ -4,26 +4,18 @@ namespace App\Model\Entity;
 use Cake\ORM\Entity;
 
 /**
- * Customer Entity
+ * Category Entity
  *
  * @property int $id
  * @property int $shops_id
- * @property string $email
- * @property string $first_name
- * @property string $last_name
- * @property \Cake\I18n\Time $birthday
- * @property string $address
- * @property string $telephone
- * @property int $avatar
- * @property bool $favorite
- * @property \Cake\I18n\Time $last_visit
- * @property int $last_service
+ * @property string $name
+ * @property bool $active
  * @property \Cake\I18n\Time $created
  * @property \Cake\I18n\Time $modified
  *
  * @property \App\Model\Entity\Shop $shop
  */
-class Customer extends Entity
+class Category extends Entity
 {
 
     /**
@@ -41,6 +33,7 @@ class Customer extends Entity
     ];
 
     protected $_hidden = [
+        'shops_id',
         'created',
         'modified'
     ];

@@ -83,6 +83,13 @@ Router::scope('/customers', function ($routes) {
     $routes->connect('/edit/:id', ['controller' => 'Customers', 'action' => 'edit'], ['id' => '\d+', 'pass' => ['id']]);
     $routes->connect('/delete/:id', ['controller' => 'Customers', 'action' => 'delete'], ['id' => '\d+', 'pass' => ['id']]);
 });
+Router::scope('/categories', function ($routes) {
+    $routes->connect('/', ['controller' => 'Categories', 'action' => 'index']);
+    $routes->connect('/add', ['controller' => 'Categories', 'action' => 'add']);
+    $routes->connect('/view/:id', ['controller' => 'Categories', 'action' => 'view'], ['id' => '\d+', 'pass' => ['id']]);
+    $routes->connect('/edit/:id', ['controller' => 'Categories', 'action' => 'edit'], ['id' => '\d+', 'pass' => ['id']]);
+    $routes->connect('/delete/:id', ['controller' => 'Categories', 'action' => 'delete'], ['id' => '\d+', 'pass' => ['id']]);
+});
 
 
 Router::prefix('api', function ($routes) {
@@ -97,6 +104,7 @@ Router::prefix('api', function ($routes) {
 
     $routes->resources('Employees');
     $routes->resources('Customers');
+    $routes->resources('Categories');
 
     $routes->fallbacks('InflectedRoute');
 });
