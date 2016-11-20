@@ -7,21 +7,21 @@ use Cake\ORM\Table;
 use Cake\Validation\Validator;
 
 /**
- * Categories Model
+ * Services Model
  *
- * @property \Cake\ORM\Association\BelongsTo $Shops
+ * @property \Cake\ORM\Association\BelongsTo $Categories
  *
- * @method \App\Model\Entity\Category get($primaryKey, $options = [])
- * @method \App\Model\Entity\Category newEntity($data = null, array $options = [])
- * @method \App\Model\Entity\Category[] newEntities(array $data, array $options = [])
- * @method \App\Model\Entity\Category|bool save(\Cake\Datasource\EntityInterface $entity, $options = [])
- * @method \App\Model\Entity\Category patchEntity(\Cake\Datasource\EntityInterface $entity, array $data, array $options = [])
- * @method \App\Model\Entity\Category[] patchEntities($entities, array $data, array $options = [])
- * @method \App\Model\Entity\Category findOrCreate($search, callable $callback = null)
+ * @method \App\Model\Entity\Service get($primaryKey, $options = [])
+ * @method \App\Model\Entity\Service newEntity($data = null, array $options = [])
+ * @method \App\Model\Entity\Service[] newEntities(array $data, array $options = [])
+ * @method \App\Model\Entity\Service|bool save(\Cake\Datasource\EntityInterface $entity, $options = [])
+ * @method \App\Model\Entity\Service patchEntity(\Cake\Datasource\EntityInterface $entity, array $data, array $options = [])
+ * @method \App\Model\Entity\Service[] patchEntities($entities, array $data, array $options = [])
+ * @method \App\Model\Entity\Service findOrCreate($search, callable $callback = null)
  *
  * @mixin \Cake\ORM\Behavior\TimestampBehavior
  */
-class CategoriesTable extends Table
+class ServicesTable extends Table
 {
 
     /**
@@ -34,21 +34,15 @@ class CategoriesTable extends Table
     {
         parent::initialize($config);
 
-        $this->table('categories');
+        $this->table('services');
         $this->displayField('name');
         $this->primaryKey('id');
 
         $this->addBehavior('Timestamp');
 
-        $this->belongsTo('Shops', [
-            'foreignKey' => 'shops_id',
-            'joinType' => 'INNER'
-        ]);
-
-        $this->hasMany('Services', [
-            'className' => 'Services',
+        $this->belongsTo('Categories', [
             'foreignKey' => 'categories_id',
-            'conditions' => ['active' => true]
+            'joinType' => 'INNER'
         ]);
     }
 
@@ -69,6 +63,14 @@ class CategoriesTable extends Table
             ->notEmpty('name');
 
         $validator
+            ->numeric('price')
+            ->allowEmpty('price');
+
+        $validator
+            ->numeric('shop_fee')
+            ->allowEmpty('shop_fee');
+
+        $validator
             ->boolean('active')
             ->allowEmpty('active');
 
@@ -84,13 +86,8 @@ class CategoriesTable extends Table
      */
     public function buildRules(RulesChecker $rules)
     {
-        $rules->add($rules->existsIn(['shops_id'], 'Shops'));
+        $rules->add($rules->existsIn(['categories_id'], 'Categories'));
 
         return $rules;
-    }
-
-    public function checkExistCategoryInShop($shopId, $categoryId)
-    {
-        //$query = $this->
     }
 }

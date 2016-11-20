@@ -90,6 +90,13 @@ Router::scope('/categories', function ($routes) {
     $routes->connect('/edit/:id', ['controller' => 'Categories', 'action' => 'edit'], ['id' => '\d+', 'pass' => ['id']]);
     $routes->connect('/delete/:id', ['controller' => 'Categories', 'action' => 'delete'], ['id' => '\d+', 'pass' => ['id']]);
 });
+Router::scope('/services', function ($routes) {
+    $routes->connect('/', ['controller' => 'Services', 'action' => 'index']);
+    $routes->connect('/add', ['controller' => 'Services', 'action' => 'add']);
+    $routes->connect('/view/:id', ['controller' => 'Services', 'action' => 'view'], ['id' => '\d+', 'pass' => ['id']]);
+    $routes->connect('/edit/:id', ['controller' => 'Services', 'action' => 'edit'], ['id' => '\d+', 'pass' => ['id']]);
+    $routes->connect('/delete/:id', ['controller' => 'Services', 'action' => 'delete'], ['id' => '\d+', 'pass' => ['id']]);
+});
 
 
 Router::prefix('api', function ($routes) {
@@ -105,6 +112,7 @@ Router::prefix('api', function ($routes) {
     $routes->resources('Employees');
     $routes->resources('Customers');
     $routes->resources('Categories');
+    $routes->resources('Services');
 
     $routes->fallbacks('InflectedRoute');
 });

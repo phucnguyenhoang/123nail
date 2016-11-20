@@ -113,7 +113,8 @@ class ApiController extends Controller
         'edit_success' => 'The field has edited.',
         'edit_failed' => 'The field can not edit.',
         'delete_success' => 'The field has deleted.',
-        'delete_failed' => 'The field can not delete.'
+        'delete_failed' => 'The field can not delete.',
+        'category_not_found' => 'Category id does not exist.'
     );
 
     protected function _getResult($status, $code, $msg, $data = null) 
