@@ -17,7 +17,17 @@ class EmployeesController extends ApiController
         $this->paginate = [
             'order' => ['Employees.first_name' => 'asc']
         ];
-        $employees = $this->paginate($this->Employees->find()->where(['shops_id' => $permission->shops_id]));
+
+        $isFree = $this->request->query('is_free');
+        $conditions = array(
+            'shops_id' => $permission->shops_id
+        );
+
+        if (!is_null($isFree)) {
+            $conditions['is_free'] = $isFree;
+        }
+
+        $employees = $this->paginate($this->Employees->find()->where($conditions));
 
         $this->set(compact('employees'));
         $this->set('_serialize', 'employees');
