@@ -98,4 +98,11 @@ class BillingsHasServicesTable extends Table
 
         return $rules;
     }
+
+    public function addMultiple($data) {
+        $billServices = $this->newEntities($data);
+        foreach ($billServices as $billService) {
+            $this->save($billService);
+        }
+    }
 }

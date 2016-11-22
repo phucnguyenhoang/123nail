@@ -117,7 +117,9 @@ class ApiController extends Controller
         'category_not_found' => 'Category id does not exist.',
         'customer_not_found' => 'Customer id does not exist.',
         'service_not_found' => 'Servce id does not exist.',
-        'employee_not_found' => 'Employee id does not exist.'
+        'employee_not_found' => 'Employee id does not exist.',
+        'bill_not_found' => 'Bill id does not exist.',
+        'bill_not_accept_service' => 'This bill has been done.'
     );
 
     protected function _getResult($status, $code, $msg, $data = null) 
