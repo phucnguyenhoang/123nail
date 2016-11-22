@@ -174,7 +174,9 @@ class BillingsController extends ApiController
         }
 
         $billingsTable = TableRegistry::get('Billings');
-        $bill = $billingsTable->find()->contain('Customers')->where(['Billings.id' => $id, 'Customers.shops_id' => $permission->shops_id]);
+        $bill = $billingsTable->find()
+                ->contain(['Customers', 'BillingsHasServices'])
+                ->where(['Billings.id' => $id, 'Customers.shops_id' => $permission->shops_id]);
 
         // verify existing bill
         if ($bill->count() <= 0) {
@@ -191,19 +193,25 @@ class BillingsController extends ApiController
             return;
         }
 
-        $services = $this->request->data['services'];
-
-        // verify service data
-        $verify = $this->_verifyServiceData($services, $permission->shops_id);
-        if ($verify['error']) {
-            $this->_handleResponse($verify['data']);
-            return;
+        // verify exist service id
+        $billServices = array();
+        foreach ($bill->services as $service) {
+            $billServices[] = $service->id;
+        }
+        
+        $billServicesId = $this->request->data;
+        foreach ($billServicesId as $billServiceId) {
+            if (!in_array($billServiceId, $billServices)) {
+                $result = $this->_getResult('failed', 400, $this->msg['bill_service_not_found']);
+                $this->_handleResponse($result);
+                return;
+            }            
         }
 
         // delete service from bill
         $billingsHasServicesTable = TableRegistry::get('BillingsHasServices');
-        foreach ($services as $row) {
-            $service = $billingsHasServicesTable->find()->where(['billings_id' => $id, 'services_id' => $row['services_id'], 'employees_id' => $row['employees_id']])->first();
+        foreach ($billServicesId as $billServiceId) {
+            $service = $billingsHasServicesTable->get($billServiceId);
 
             $billingsHasServicesTable->delete($service);
         }
@@ -276,6 +284,31 @@ class BillingsController extends ApiController
         $billInfo['services'] = $serviceInfo;
 
         $this->_handleResponse($billInfo);
+    }
+
+    public function discount($id = null) 
+    {
+        // echeck session and permission
+        $permission = $this->checkPermission(true);
+        if (is_array($permission)) {
+            $this->_handleResponse($permission);
+            return;
+        }
+
+        $billingsHasServicesTable = TableRegistry::get('BillingsHasServices');
+        $billService = $billingsHasServicesTable->get($id, ['contain' => ['Billings', 'Billings.Customers']]);
+
+        if ($billService->billing->customer->shops_id != $permission->shops_id) {
+            $result = $this->_getResult('failed', 400, $this->msg['bill_service_not_found']);
+            $this->_handleResponse($result);
+            return;
+        }
+
+        $billService->discount = $this->request->data('discount');
+        $billingsHasServicesTable->save($billService);
+
+        $result = $this->_getResult('success', 200, $this->msg['edit_success']);
+        $this->_handleResponse($result);
     }
 
     /************** Private function ****************/
