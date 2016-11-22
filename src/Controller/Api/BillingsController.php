@@ -2,6 +2,7 @@
 namespace App\Controller\Api;
 
 use Cake\ORM\TableRegistry;
+use Cake\I18n\Time;
 
 class BillingsController extends ApiController
 {
@@ -304,11 +305,91 @@ class BillingsController extends ApiController
             return;
         }
 
-        $billService->discount = $this->request->data('discount');
+        $discount = $this->request->data('discount');
+        if (is_null($discount)) {
+            $result = $this->_getResult('error', 400, $this->msg['missing_parameter']);
+            $this->_handleResponse($result);
+            return;
+        }
+
+        $billService->discount = $discount;
         $billingsHasServicesTable->save($billService);
 
         $result = $this->_getResult('success', 200, $this->msg['edit_success']);
         $this->_handleResponse($result);
+    }
+
+    public function tips($id = null) 
+    {
+        // echeck session and permission
+        $permission = $this->checkPermission(true);
+        if (is_array($permission)) {
+            $this->_handleResponse($permission);
+            return;
+        }
+
+        $billingsHasServicesTable = TableRegistry::get('BillingsHasServices');
+        $billService = $billingsHasServicesTable->get($id, ['contain' => ['Billings', 'Billings.Customers']]);
+
+        if ($billService->billing->customer->shops_id != $permission->shops_id) {
+            $result = $this->_getResult('failed', 400, $this->msg['bill_service_not_found']);
+            $this->_handleResponse($result);
+            return;
+        }
+
+        $tips = $this->request->data('tips');
+        if (is_null($tips)) {
+            $result = $this->_getResult('error', 400, $this->msg['missing_parameter']);
+            $this->_handleResponse($result);
+            return;
+        }
+
+        $billService->tips = $tips;
+        $billingsHasServicesTable->save($billService);
+
+        $result = $this->_getResult('success', 200, $this->msg['edit_success']);
+        $this->_handleResponse($result);
+    }
+
+    public function done ($id = null) 
+    {
+        // echeck session and permission
+        $permission = $this->checkPermission(true);
+        if (is_array($permission)) {
+            $this->_handleResponse($permission);
+            return;
+        }
+
+        $billingsTable = TableRegistry::get('Billings');
+        $bill = $billingsTable->find()
+                ->contain(['Customers', 'BillingsHasServices'])
+                ->where(['Billings.id' => $id, 'Customers.shops_id' => $permission->shops_id]);
+
+        // verify existing bill
+        if ($bill->count() <= 0) {
+            $result = $this->_getResult('failed', 400, $this->msg['bill_not_found']);
+            $this->_handleResponse($result);
+            return;
+        }
+
+        // verify is done bill
+        $bill = $bill->first();
+        if ($bill->done) {
+            $result = $this->_getResult('failed', 400, $this->msg['bill_not_accept_service']);
+            $this->_handleResponse($result);
+            return;
+        }
+
+        $data = $this->request->data;
+        
+        $bill->payment_type = $data['payment_type'];
+        $bill->receive = $data['receive'];
+        $bill->return = $data['return'];
+        $bill->note = $data['note'];
+        $bill->done = 1;
+        $bill->billing_date = Time::now();
+
+        $billingsTable->save($bill);
     }
 
     /************** Private function ****************/
