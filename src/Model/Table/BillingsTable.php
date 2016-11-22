@@ -44,6 +44,12 @@ class BillingsTable extends Table
             'foreignKey' => 'customers_id',
             'joinType' => 'INNER'
         ]);
+
+        $this->hasMany('BillingsHasServices', [
+            'className' => 'BillingsHasServices',
+            'foreignKey' => 'billings_id',
+            'propertyName' => 'services'
+        ]);
     }
 
     /**

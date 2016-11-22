@@ -116,6 +116,7 @@ Router::prefix('api', function ($routes) {
     $routes->resources('Billings');
 
     Router::connect('/api/billings/add-services/:id', ['controller' => 'Billings', 'action' => 'addService', 'prefix' => 'api'], ['id' => '\d+', 'pass' => ['id']]);
+    Router::connect('/api/billings/remove-services/:id', ['controller' => 'Billings', 'action' => 'removeService', 'prefix' => 'api'], ['id' => '\d+', 'pass' => ['id']]);
 
     $routes->fallbacks('InflectedRoute');
 });

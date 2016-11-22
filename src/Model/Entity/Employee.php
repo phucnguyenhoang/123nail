@@ -47,4 +47,8 @@ class Employee extends Entity
         'created',
         'modified'
     ];
+
+    protected function _getFullName() {
+        return $this->_properties['frist_name'].' '.$this->_properties['last_name'];
+    }
 }
