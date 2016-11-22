@@ -113,6 +113,7 @@ Router::prefix('api', function ($routes) {
     $routes->resources('Customers');
     $routes->resources('Categories');
     $routes->resources('Services');
+    $routes->resources('Billings');
 
     $routes->fallbacks('InflectedRoute');
 });
