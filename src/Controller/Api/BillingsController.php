@@ -384,7 +384,7 @@ class BillingsController extends ApiController
         
         $bill->payment_type = $data['payment_type'];
         $bill->receive = $data['receive'];
-        $bill->return = $data['return'];
+        //$bill->return = $data['return'];
         $bill->note = $data['note'];
         $bill->done = 1;
         $bill->billing_date = Time::now();
