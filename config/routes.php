@@ -121,6 +121,8 @@ Router::prefix('api', function ($routes) {
     Router::connect('/api/billings/tips/:id', ['controller' => 'Billings', 'action' => 'tips', 'prefix' => 'api'], ['id' => '\d+', 'pass' => ['id']]);
     Router::connect('/api/billings/done/:id', ['controller' => 'Billings', 'action' => 'done', 'prefix' => 'api'], ['id' => '\d+', 'pass' => ['id']]);
 
+    Router::connect('/api/salaries/view/:id', ['controller' => 'Salaries', 'action' => 'view', 'prefix' => 'api'], ['id' => '\d+', 'pass' => ['id']]);
+
     $routes->fallbacks('InflectedRoute');
 });
 
