@@ -313,9 +313,14 @@ class BillingsController extends ApiController
         }
 
         $billService->discount = $discount;
-        $billingsHasServicesTable->save($billService);
 
-        $result = $this->_getResult('success', 200, $this->msg['edit_success']);
+        if ($billingsHasServicesTable->save($billService)) {
+            $result = $this->_getResult('success', 200, $this->msg['edit_success']);
+            $this->_handleResponse($result);
+            return;
+        }
+        
+        $result = $this->_getResult('failed', 400, $this->msg['edit_failed']);
         $this->_handleResponse($result);
     }
 
@@ -345,9 +350,14 @@ class BillingsController extends ApiController
         }
 
         $billService->tips = $tips;
-        $billingsHasServicesTable->save($billService);
 
-        $result = $this->_getResult('success', 200, $this->msg['edit_success']);
+        if ($billingsHasServicesTable->save($billService)) {
+            $result = $this->_getResult('success', 200, $this->msg['edit_success']);
+            $this->_handleResponse($result);
+            return;
+        }
+        
+        $result = $this->_getResult('failed', 400, $this->msg['edit_failed']);
         $this->_handleResponse($result);
     }
 
@@ -384,12 +394,58 @@ class BillingsController extends ApiController
         
         $bill->payment_type = $data['payment_type'];
         $bill->receive = $data['receive'];
-        //$bill->return = $data['return'];
+        $bill->returns = $data['returns'];
         $bill->note = $data['note'];
         $bill->done = 1;
         $bill->billing_date = Time::now();
 
-        $billingsTable->save($bill);
+        if ($billingsTable->save($bill)) {
+            $result = $this->_getResult('success', 200, $this->msg['edit_success']);
+            $this->_handleResponse($result);
+            return;
+        }
+        
+        $result = $this->_getResult('failed', 400, $this->msg['edit_failed']);
+        $this->_handleResponse($result);
+    }
+
+    public function delete($id = null)
+    {
+        // echeck session and permission
+        $permission = $this->checkPermission(true);
+        if (is_array($permission)) {
+            $this->_handleResponse($permission);
+            return;
+        }
+
+        $billingsTable = TableRegistry::get('Billings');
+        $bill = $billingsTable->find()
+                ->contain(['Customers', 'BillingsHasServices'])
+                ->where(['Billings.id' => $id, 'Customers.shops_id' => $permission->shops_id]);
+
+        // verify existing bill
+        if ($bill->count() <= 0) {
+            $result = $this->_getResult('failed', 400, $this->msg['bill_not_found']);
+            $this->_handleResponse($result);
+            return;
+        }
+
+        // verify is done bill
+        $bill = $bill->first();
+        if ($bill->done) {
+            $result = $this->_getResult('failed', 400, $this->msg['bill_not_accept_service']);
+            $this->_handleResponse($result);
+            return;
+        }
+
+        if ($billingsTable->delete($bill)) {
+            $result = $this->_getResult('success', 200, $this->msg['delete_success']);
+            $this->_handleResponse($result);
+            return;
+        }
+        
+        $result = $this->_getResult('failed', 400, $this->msg['delete_failed']);
+        $this->_handleResponse($result);
     }
 
     /************** Private function ****************/

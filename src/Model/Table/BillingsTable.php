@@ -48,7 +48,9 @@ class BillingsTable extends Table
         $this->hasMany('BillingsHasServices', [
             'className' => 'BillingsHasServices',
             'foreignKey' => 'billings_id',
-            'propertyName' => 'services'
+            'propertyName' => 'services',
+            'dependent' => true,
+            'cascadeCallbacks' => true
         ]);
     }
 
@@ -73,8 +75,8 @@ class BillingsTable extends Table
             ->allowEmpty('receive');
 
         $validator
-            ->numeric('return')
-            ->allowEmpty('return');
+            ->numeric('returns')
+            ->allowEmpty('returns');
 
         $validator
             ->allowEmpty('note');
