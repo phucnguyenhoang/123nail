@@ -50,14 +50,21 @@ class SalariesController extends ApiController
                         'BillingsHasServices.employees_id' => $id,
                         'Billings.done' => 1,
                         'Billings.billing_date >=' => $fromDate,
-                        'Billings.billing_date <=' => $toDate->addDays(1)
-                    ]);
+                        'Billings.billing_date <' => $toDate->addDays(1)
+                    ])
+                    ->order(['Billings.billing_date' => 'DESC']);
 
         if ($services->count() <= 0) {
             $this->_handleResponse([]);
             return;
         }
-        //var_dump($services->first()->toArray());
+
+        $lastSalaryDate = TableRegistry::get('Salaries')->find()
+                            ->select(['from_date', 'to_date'])
+                            ->where(['employees_id' => $id])
+                            ->order(['to_date' => 'DESC'])
+                            ->first();
+                
         $salaries = array();
         $price = 0;
         $shopFee = 0;
@@ -71,6 +78,12 @@ class SalariesController extends ApiController
             $tmp['shop_fee'] = $service->shop_fee;
             $tmp['discount'] = $service->discount;
             $tmp['tips'] = $service->tips;
+            $tmp['received'] = false;
+            if (!is_null($lastSalaryDate) && $tmp['date'] >= $lastSalaryDate->from_date && $tmp['date'] < $lastSalaryDate->to_date) {
+                $tmp['received'] = true;
+                $salaries[] = $tmp;
+                continue;
+            }
             $price += !is_null($service->price) ? $service->price : 0;
             $shopFee += !is_null($service->shop_fee) ? $service->shop_fee : 0;
             $discount += !is_null($service->discount) ? $service->discount : 0;
