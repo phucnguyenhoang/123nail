@@ -44,6 +44,12 @@ class ServicesTable extends Table
             'foreignKey' => 'categories_id',
             'joinType' => 'INNER'
         ]);
+
+        $this->belongsToMany('Bookings', [
+            'joinTable' => 'bookings_has_services',
+            'foreignKey' => 'services_id',
+            'targetForeignKey' => 'bookings_id'
+        ]);
     }
 
     /**

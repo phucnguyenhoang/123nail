@@ -14,10 +14,6 @@ class CreateBookingsHasServices extends AbstractMigration
             ->addColumn('services_id', 'integer', [
                 'null' => false
             ])
-            ->addColumn('note', 'string', [
-                'limit' => 150,
-                'null' => true
-            ])
             ->create();
     }
     public function down()

@@ -15,22 +15,53 @@ class BookingsController extends ApiController
             return;
         }
 
-        $this->paginate = [
-            'contain' => ['Categories'],
-            'order' => ['Services.name' => 'asc']
-        ];
-
-        $conditions = array(
-            'Categories.shops_id' => $permission->shops_id
-        );
-        $categoryId = $this->request->query('categories_id');
-        if (!empty($categoryId)) {
-            $conditions['Services.categories_id'] = $categoryId;
+        $fromDate = new Time($this->request->query('from'));
+        $toDate = new Time($this->request->query('to'));
+        if ($fromDate > $toDate) {
+            $result = $this->_getResult('error', 400, $this->msg['booking_date_error']);
+            $this->_handleResponse($result);
+            return;
         }
-        $services = $this->paginate($this->Services->find()->where($conditions));
 
-        $this->set(compact('services'));
-        $this->set('_serialize', 'services');
+        $query = $this->Bookings->find()
+                    ->contain(['Customers', 'Services'])
+                    ->where([
+                            'Customers.shops_id' => $permission->shops_id,
+                            'Bookings.date >=' => $fromDate,
+                            'Bookings.date <=' => $toDate
+                        ]);
+
+        $bookings = array();
+        if ($query->count() > 0) {
+            foreach ($query as $row) {
+                $tmp = array(
+                    'id' => $row->id,
+                    'date' => $row->date,
+                    'start_time' => $row->start_time,
+                    'end_time' => $row->end_time,
+                    'status' => $row->status,
+                    'note' => $row->note,
+                    'customer' => [
+                        'id' => $row->customer->id,
+                        'first_name' => $row->customer->first_name,
+                        'last_name' => $row->customer->last_name
+                    ]
+                );
+                $services = array();
+                foreach ($row->services as $sv) {
+                    $services[] = array(
+                        'id' => $sv->id,
+                        'name' => $sv->name
+                    );
+                }
+                $tmp['services'] = $services;
+
+                $bookings[] = $tmp;
+            }
+        }
+
+        $this->set(compact('bookings'));
+        $this->set('_serialize', 'bookings');
     }
 
     
@@ -78,18 +109,15 @@ class BookingsController extends ApiController
             $this->_handleResponse($result);
             return;
         }
-        $serviceId = array();
-        foreach ($serviceData as $row) {
-            $serviceId[] = $row['id'];
-        }
+
         $servicesTable = TableRegistry::get('Services');
         $query = $servicesTable->find()
             ->contain(['Categories'])
             ->where(['Categories.shops_id' => $permission->shops_id])
-            ->andWhere(function ($exp, $q) use ($serviceId) {
-                return $exp->in('Services.id', $serviceId);
+            ->andWhere(function ($exp, $q) use ($serviceData) {
+                return $exp->in('Services.id', $serviceData);
             });
-        if ($query->count() < sizeof($serviceId)) {
+        if ($query->count() < sizeof($serviceData)) {
             $result = $this->_getResult('error', 400, $this->msg['service_not_found']);
             $this->_handleResponse($result);
             return;
@@ -137,7 +165,7 @@ class BookingsController extends ApiController
         }
         $bookingStart = new Time($bookingData['start_time']);
         $bookingEnd = new Time($bookingData['end_time']);
-        if ($bookingStart <= Time::now() || $bookingStart >= $bookingEnd) {
+        if ($bookingDate <= Time::now() || $bookingStart >= $bookingEnd) {
             $result = $this->_getResult('error', 400, $this->msg['booking_time_error']);
             $this->_handleResponse($result);
             return;
@@ -149,11 +177,10 @@ class BookingsController extends ApiController
 
         // create booking services
         $bookingServices = array();
-        foreach ($serviceData as $row) {
+        foreach ($serviceData as $serviceId) {
             $tmp = array(
                 'bookings_id' => $bookingId,
-                'services_id' => $row['id'],
-                'note' => $row['note']
+                'services_id' => $serviceId,
             );
             $bookingServices[] = $tmp;
         }

@@ -52,6 +52,12 @@ class BookingsTable extends Table
             'dependent' => true,
             'cascadeCallbacks' => true
         ]);
+
+        $this->belongsToMany('Services', [
+            'joinTable' => 'bookings_has_services',
+            'foreignKey' => 'bookings_id',
+            'targetForeignKey' => 'services_id'
+        ]);
     }
 
     /**
