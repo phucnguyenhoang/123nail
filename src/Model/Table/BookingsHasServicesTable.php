@@ -79,4 +79,11 @@ class BookingsHasServicesTable extends Table
 
         return $rules;
     }
+
+    public function addMultiple($data) {
+        $bookingServices = $this->newEntities($data);
+        foreach ($bookingServices as $bookingService) {
+            $this->save($bookingService);
+        }
+    }
 }

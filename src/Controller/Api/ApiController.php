@@ -121,7 +121,9 @@ class ApiController extends Controller
         'bill_not_found' => 'Bill id does not exist.',
         'bill_not_accept_service' => 'This bill has been done.',
         'bill_service_not_found' => 'Bill service id does not exist.',
-        'salary_date_error' => 'Salary date error.'
+        'salary_date_error' => 'Salary date error.',
+        'booking_date_error' => 'Booking date error.',
+        'booking_time_error' => 'Booking time error.'
     );
 
     protected function _getResult($status, $code, $msg, $data = null) 

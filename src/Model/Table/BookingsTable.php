@@ -44,6 +44,14 @@ class BookingsTable extends Table
             'foreignKey' => 'customers_id',
             'joinType' => 'INNER'
         ]);
+
+        $this->hasMany('BookingsHasServices', [
+            'className' => 'BookingsHasServices',
+            'foreignKey' => 'bookings_id',
+            'propertyName' => 'services',
+            'dependent' => true,
+            'cascadeCallbacks' => true
+        ]);
     }
 
     /**

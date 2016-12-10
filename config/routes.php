@@ -122,6 +122,7 @@ Router::prefix('api', function ($routes) {
     Router::connect('/api/billings/done/:id', ['controller' => 'Billings', 'action' => 'done', 'prefix' => 'api'], ['id' => '\d+', 'pass' => ['id']]);
 
     $routes->resources('Salaries');
+    $routes->resources('Bookings');
 
     $routes->fallbacks('InflectedRoute');
 });
