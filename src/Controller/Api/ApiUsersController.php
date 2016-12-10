@@ -45,7 +45,7 @@ class ApiUsersController extends ApiController
 	        'data' => [
 	            'token' => JWT::encode([
 	                'sub' => $user['id'],
-	                'exp' =>  time() + 604800
+	                'exp' =>  time() + 60480000
 	            ],
 	            Security::salt())
 	        ],

@@ -2,22 +2,85 @@
 namespace App\Controller\Api;
 
 use Cake\ORM\TableRegistry;
+use Cake\I18n\Time;
 
 class CustomersController extends ApiController
 {
     public function index()
     {     
-        // echeck session and permission
+        // check session and permission
         $permission = $this->checkPermission();
         if (is_array($permission)) {
             $this->_handleResponse($permission);
             return;
         }
 
-        $this->paginate = [
-            'order' => ['Customers.first_name' => 'asc']
-        ];
-        $customers = $this->paginate($this->Customers->find()->where(['shops_id' => $permission->shops_id]));
+        $date = $this->request->query('date');
+        if (empty($date)) {
+            $this->paginate = [
+                'order' => ['Customers.first_name' => 'asc']
+            ];
+            $customers = $this->paginate($this->Customers->find()
+                                            ->order(['first_name' => 'ASC', 'last_name' => 'ASC'])
+                                            ->where(['shops_id' => $permission->shops_id])
+                                        );
+        } else {
+            $this->paginate = [
+                'order' => ['Customers.first_name' => 'asc'],
+                'contain' => ['Billings']
+            ];
+
+            $customers = $this->Customers
+                                ->find()
+                                ->contain(['Billings' => ['sort' => ['done' => 'DESC']]])
+                                ->distinct('Customers.id')
+                                ->order(['first_name' => 'ASC', 'last_name' => 'ASC'])
+                                ->where([
+                                    'Customers.shops_id' => $permission->shops_id                                    
+                                ])
+                                ->matching('Billings', function ($q) use($date) {
+                                    $lDate = new Time($date);
+                                    $rDate = new Time($date);
+                                    return $q->where(function ($exp, $q) {
+                                                return $exp->isNull('billing_date');
+                                            })
+                                            ->orWhere(
+                                                ['billing_date >' => $lDate, 'billing_date <' => $rDate->addDays(1)]
+                                            );
+                                });
+            
+            $this->set('Billings', $this->paginate($customers));
+
+            if (!empty($customers)) {
+                $tmpCustomers = array();
+                foreach ($customers as $row) {
+                    $lastBill = end($row['billings']);
+                    $tmp = array(
+                        "id" => $row['id'],
+                        "shops_id" => $row['shops_id'],
+                        "email" => $row['email'],
+                        "first_name" => $row['first_name'],
+                        "last_name" => $row['last_name'],
+                        "birthday" => $row['birthday'],
+                        "address" => $row['address'],
+                        "telephone" => $row['telephone'],
+                        "avatar" => $row['avatar'],
+                        "favorite" => $row['favorite'],
+                        "last_visit" => $row['last_visit'],
+                        "last_service" => $row['last_service'],
+                        "billings" => [
+                            'id' => $lastBill['id'],
+                            'done' => $lastBill['done']
+                        ]
+                    );
+
+                    $tmpCustomers[] = $tmp;
+                }
+
+                $customers = $tmpCustomers;
+            }
+        }
+        
 
         $this->set(compact('customers'));
         $this->set('_serialize', 'customers');

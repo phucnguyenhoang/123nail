@@ -43,6 +43,10 @@ class CustomersTable extends Table
         $this->belongsTo('Shops', [
             'foreignKey' => 'shops_id'
         ]);
+
+        $this->hasMany('Billings', [
+            'foreignKey' => 'customers_id'
+        ]);
     }
 
     /**
