@@ -25,6 +25,7 @@ class BookingsController extends ApiController
 
         $query = $this->Bookings->find()
                     ->contain(['Customers', 'Services'])
+                    ->order(['Bookings.date' => 'ASC', 'Bookings.start_time' => 'ASC'])
                     ->where([
                             'Customers.shops_id' => $permission->shops_id,
                             'Bookings.date >=' => $fromDate,
@@ -293,17 +294,17 @@ class BookingsController extends ApiController
             return;
         }
 
-        $service = $this->Services->get($id);
-        if (is_null($service)) {
+        $booking = $this->Bookings->get($id);
+        if (is_null($booking)) {
             $result = $this->_getResult('failed', 404, $this->msg['not_found']);
             $this->_handleResponse($result);
             return;
         }
 
-        if ($this->Services->delete($service)) {
+        if ($this->Bookings->delete($booking)) {
             $result = $this->_getResult('success', 200, $this->msg['delete_success']);
         } else {
-            $result = $this->_getResult('failed', 400, $this->msg['delete_failed'], $service->errors());
+            $result = $this->_getResult('failed', 400, $this->msg['delete_failed'], $booking->errors());
         }
 
         $this->_handleResponse($result);
