@@ -74,16 +74,46 @@ class BookingsController extends ApiController
             return;
         }
 
-        $service = $this->Services->find()->contain('Categories')->where(['Services.id' => $id, 'Categories.shops_id' => $permission->shops_id]);
+        $query = $this->Bookings->find()
+                    ->contain(['Customers', 'Services'])
+                    ->where([
+                            'Customers.shops_id' => $permission->shops_id,
+                            'Bookings.id' => $id
+                        ]);
 
-        if ($service->count() <= 0) {
+        if ($query->count() <= 0) {
             $result = $this->_getResult('failed', 404, $this->msg['not_found']);
             $this->_handleResponse($result);
             return;
         }
 
-        $this->set('service', $service);
-        $this->set('_serialize', 'service');
+        $bookingResult = $query->first();
+        $booking = array(
+            'id' => $bookingResult->id,
+            'date' => $bookingResult->date,
+            'start_time' => $bookingResult->start_time,
+            'end_time' => $bookingResult->end_time,
+            'status' => $bookingResult->status,
+            'note' => $bookingResult->note,
+            'customer' => [
+                'id' => $bookingResult->customer->id,
+                'first_name' => $bookingResult->customer->first_name,
+                'last_name' => $bookingResult->customer->last_name
+            ]
+        );
+
+        $services = array();
+        foreach ($bookingResult->services as $row) {
+            $tmp = array(
+                'id' => $row->id,
+                'name' => $row->name
+            );
+            $services[] = $tmp;
+        }
+        $booking['services'] = $services;
+
+        $this->set('booking', $booking);
+        $this->set('_serialize', 'booking');
     }
 
     /**
