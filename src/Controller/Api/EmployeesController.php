@@ -151,4 +151,30 @@ class EmployeesController extends ApiController
 
         $this->_handleResponse($result);
     }
+
+    public function search()
+    {
+        // echeck session and permission
+        $permission = $this->checkPermission();
+        if (is_array($permission)) {
+            $this->_handleResponse($permission);
+            return;
+        }
+
+        $keyword = $this->request->query('keyword');
+
+        $employees = $this->Employees->find()
+                        ->where([
+                            'shops_id' => $permission->shops_id,
+                            'OR' => [
+                                'first_name LIKE' => '%'.$keyword.'%',
+                                'last_name LIKE' => '%'.$keyword.'%'
+                            ]
+                        ]);
+
+        $employees = $this->paginate($employees);
+
+        $this->set('employees', $employees);
+        $this->set('_serialize', 'employees');
+    }
 }

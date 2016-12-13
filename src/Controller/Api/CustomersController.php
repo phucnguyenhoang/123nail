@@ -204,4 +204,30 @@ class CustomersController extends ApiController
 
         $this->_handleResponse($result);
     }
+
+    public function search()
+    {
+        // echeck session and permission
+        $permission = $this->checkPermission();
+        if (is_array($permission)) {
+            $this->_handleResponse($permission);
+            return;
+        }
+
+        $keyword = $this->request->query('keyword');
+
+        $customers = $this->Customers->find()
+                        ->where([
+                            'shops_id' => $permission->shops_id,
+                            'OR' => [
+                                'first_name LIKE' => '%'.$keyword.'%',
+                                'last_name LIKE' => '%'.$keyword.'%'
+                            ]
+                        ]);
+
+        $customers = $this->paginate($customers);
+
+        $this->set('customers', $customers);
+        $this->set('_serialize', 'customers');
+    }
 }
