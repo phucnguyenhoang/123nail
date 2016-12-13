@@ -239,30 +239,38 @@ class BookingsController extends ApiController
             $this->_handleResponse($permission);
             return;
         }
-        if (!empty($this->request->data('categories_id'))) {
-            $categories = TableRegistry::get('Categories');
-            $categoryId = $this->request->data('categories_id');
-            $category = $categories->find()->where(['id' => $categoryId, 'shops_id' => $permission->shops_id]);
-            if ($category->count() <= 0) {
-                $result = $this->_getResult('failed', 400, $this->msg['category_not_found']);
-                $this->_handleResponse($result);
-                return;
-            }
-        }
 
-        $service = $this->Services->get($id);
-        if (is_null($service)) {
+        $booking = $this->Bookings->get($id);
+        if (is_null($booking)) {
             $result = $this->_getResult('failed', 404, $this->msg['not_found']);
             $this->_handleResponse($result);
             return;
         }
-        
-        $service = $this->Services->patchEntity($service, $this->request->data);
 
-        if ($this->Services->save($service)) {
+        $servicesData = $this->request->data('services');
+        if (empty($servicesData)) {
+            $result = $this->_getResult('error', 400, $this->msg['booking_service_not_empty']);
+            $this->_handleResponse($result);
+            return;
+        }
+        
+        $booking = $this->Bookings->patchEntity($booking, $this->request->data);
+
+        $services = array();
+        foreach ($servicesData as $serviceId) {
+            $service = [
+                'bookings_id' => $booking->id,
+                'services_id' => $serviceId
+            ];
+            $services[] = $service;
+        }
+
+        if ($this->Bookings->save($booking)) {
             $result = $this->_getResult('success', 200, $this->msg['edit_success']);
+            $bookingsHasServicesTable = TableRegistry::get('BookingsHasServices');
+            $bookingsHasServicesTable->addMultiple($services);
         } else {
-            $result = $this->_getResult('failed', 400, $this->msg['edit_failed'], $service->errors());
+            $result = $this->_getResult('failed', 400, $this->msg['edit_failed'], $booking->errors());
         }
 
         $this->_handleResponse($result);

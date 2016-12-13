@@ -123,7 +123,8 @@ class ApiController extends Controller
         'bill_service_not_found' => 'Bill service id does not exist.',
         'salary_date_error' => 'Salary date error.',
         'booking_date_error' => 'Booking date error.',
-        'booking_time_error' => 'Booking time error.'
+        'booking_time_error' => 'Booking time error.',        
+        'booking_service_not_empty' => 'Booking service cannot empty.'
     );
 
     protected function _getResult($status, $code, $msg, $data = null) 
