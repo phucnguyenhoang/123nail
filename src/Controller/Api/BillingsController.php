@@ -299,7 +299,14 @@ class BillingsController extends ApiController
         }
 
         $billingsHasServicesTable = TableRegistry::get('BillingsHasServices');
-        $billService = $billingsHasServicesTable->get($id, ['contain' => ['Billings', 'Billings.Customers']]);
+        $billService = $billingsHasServicesTable->find()->where(['BillingsHasServices.id' => $id])->contain(['Billings', 'Billings.Customers']);
+        
+        if ($billService->count() <= 0) {
+            $result = $this->_getResult('failed', 400, $this->msg['bill_service_not_found']);
+            $this->_handleResponse($result);
+            return;
+        }
+        $billService = $billService->first();
 
         if ($billService->billing->customer->shops_id != $permission->shops_id) {
             $result = $this->_getResult('failed', 400, $this->msg['bill_service_not_found']);
@@ -336,7 +343,14 @@ class BillingsController extends ApiController
         }
 
         $billingsHasServicesTable = TableRegistry::get('BillingsHasServices');
-        $billService = $billingsHasServicesTable->get($id, ['contain' => ['Billings', 'Billings.Customers']]);
+        $billService = $billingsHasServicesTable->find()->where(['BillingsHasServices.id' => $id])->contain(['Billings', 'Billings.Customers']);
+        
+        if ($billService->count() <= 0) {
+            $result = $this->_getResult('failed', 400, $this->msg['bill_service_not_found']);
+            $this->_handleResponse($result);
+            return;
+        }
+        $billService = $billService->first();
 
         if ($billService->billing->customer->shops_id != $permission->shops_id) {
             $result = $this->_getResult('failed', 400, $this->msg['bill_service_not_found']);
@@ -391,7 +405,7 @@ class BillingsController extends ApiController
             $this->_handleResponse($result);
             return;
         }
-        
+
         // verify bill is has service
         if (empty($bill->services)) {
             $result = $this->_getResult('failed', 400, $this->msg['booking_service_not_empty']);
