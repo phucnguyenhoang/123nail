@@ -66,13 +66,6 @@ class BillingsController extends ApiController
 
         $data = $this->request->data;
         $services = $data['services'];
-
-        // verify service data
-        $verify = $this->_verifyServiceData($services, $permission->shops_id);
-        if ($verify['error']) {
-            $this->_handleResponse($verify['data']);
-            return;
-        }
         
         // verify customer data
         $customersTable = TableRegistry::get('Customers');
@@ -106,12 +99,21 @@ class BillingsController extends ApiController
         $bill = $billingsTable->save($bill);
         $billId = $bill->id;
 
-        // make bill data
-        $billData = $this->_makeBillData($billId, $services, $verify['data']);
-        
-        // save bill data
-        $billingsHasServicesTable = TableRegistry::get('BillingsHasServices');
-        $billingsHasServicesTable->addMultiple($billData);
+        // verify service data
+        if (!empty($services)) {
+            $verify = $this->_verifyServiceData($services, $permission->shops_id);
+            if ($verify['error']) {
+                $this->_handleResponse($verify['data']);
+                return;
+            }
+
+            // make bill data
+            $billData = $this->_makeBillData($billId, $services, $verify['data']);
+            
+            // save bill data
+            $billingsHasServicesTable = TableRegistry::get('BillingsHasServices');
+            $billingsHasServicesTable->addMultiple($billData);
+        }        
 
         $result = $this->_getResult('success', 200, $this->msg['create_success'], ['id' => $billId]);
         $this->_handleResponse($result);
@@ -389,6 +391,13 @@ class BillingsController extends ApiController
             $this->_handleResponse($result);
             return;
         }
+        
+        // verify bill is has service
+        if (empty($bill->services)) {
+            $result = $this->_getResult('failed', 400, $this->msg['booking_service_not_empty']);
+            $this->_handleResponse($result);
+            return;
+        }
 
         $data = $this->request->data;
         
@@ -446,6 +455,73 @@ class BillingsController extends ApiController
         
         $result = $this->_getResult('failed', 400, $this->msg['delete_failed']);
         $this->_handleResponse($result);
+    }
+
+    public function search() 
+    {
+        // echeck session and permission
+        $permission = $this->checkPermission();
+        if (is_array($permission)) {
+            $this->_handleResponse($permission);
+            return;
+        }
+
+        $keyword = $this->request->query('keyword');
+
+        $billingsTable = TableRegistry::get('Billings');
+        $bills = $billingsTable->find()
+                ->contain(['Customers', 'BillingsHasServices', 'BillingsHasServices.Employees'])
+                ->where([
+                    'Customers.shops_id' => $permission->shops_id,
+                    'OR' => [
+                        'Customers.first_name LIKE' => '%'.$keyword.'%',
+                        'Customers.last_name LIKE' => '%'.$keyword.'%'
+                    ]
+                ])
+                ->matching(
+                    'BillingsHasServices.Employees', function ($q) use ($keyword) {
+                        return $q->orWhere([
+                            'BillingsHasServices.billings_id' => 10,
+                            'OR' => [
+                                'first_name LIKE' => '%'.$keyword.'%',
+                                'last_name LIKE' => '%'.$keyword.'%'
+                            ]
+                        ]);
+                    }
+                )
+                ->order(['Billings.created' => 'ASC']);
+
+        if ($bills->count() <= 0) {
+            $this->_handleResponse([]);
+            return;
+        }
+        
+        $billInfo = array();
+        foreach ($bills as $bill) {
+            $currBill = array();
+            $currBill['id'] = $bill->id;
+            $currBill['customer'] = $bill->customer->first_name.' '.$bill->customer->last_name;
+
+            $total = 0;
+            $shopFee = 0;
+            $discount = 0;
+            $tips = 0;
+            foreach ($bill->services as $service) {
+                $total += !is_null($service->price) ? $service->price : 0;
+                $shopFee += !is_null($service->shop_fee) ? $service->shop_fee : 0;
+                $discount += !is_null($service->discount) ? $service->discount : 0;
+                $tips += !is_null($service->tips) ? $service->tips : 0;
+            }
+            $currBill['services'] = sizeof($bill->services);
+            $currBill['total'] = $total;
+            $currBill['shop_fee'] = $shopFee;
+            $currBill['discount'] = $discount;
+            $currBill['tips'] = $tips;
+
+            $billInfo[] = $currBill;
+        }
+
+        $this->_handleResponse($billInfo);
     }
 
     /************** Private function ****************/
