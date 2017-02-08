@@ -98,6 +98,10 @@ Router::scope('/services', function ($routes) {
     $routes->connect('/delete/:id', ['controller' => 'Services', 'action' => 'delete'], ['id' => '\d+', 'pass' => ['id']]);
 });
 
+Router::scope('/reports', function ($routes) {
+    $routes->connect('/salary', ['controller' => 'Reports', 'action' => 'salary']);
+});
+
 
 Router::prefix('api', function ($routes) {
     $routes->extensions(['json', 'xml']);
