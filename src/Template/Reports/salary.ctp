@@ -12,7 +12,7 @@
                         <label for="cboShop" class="col-sm-2 control-label"><?= __('Shop') ?></label>
                         <div class="col-sm-9">
                             <select class="form-control" id="cboShop" name="shop">
-                                <option value="all">All</option>
+                                <option value="0">All</option>
                                 <?php foreach ($shops as $shop) : ?>
                                     <?php echo '<option value="'.$shop->id.'" '.($shop->id == $conditions['shopId'] ? 'selected' : '').'>'.$shop->account.'</option>'; ?>
                                 <?php endforeach; ?>
@@ -24,7 +24,7 @@
                         <label for="cboEmployee" class="col-sm-2 control-label"><?= __('Employee') ?></label>
                         <div class="col-sm-9">
                             <select class="form-control" id="cboEmployee" name="employee">
-                                <option value="all">All</option>
+                                <option value="0">All</option>
                                 <?php foreach ($employees as $employee) : ?>
                                     <?php echo '<option value="'.$employee->id.'" '.($employee->id == $conditions['employeeId'] ? 'selected' : '').'>'.$employee->first_name.' '.$employee->last_name.'</option>'; ?>
                                 <?php endforeach; ?>
@@ -80,3 +80,4 @@
         </div>
     </div>
 </div>
+<input type="hidden" id="hidEmployeeUrl" value="<?= $this->Url->build('/reports/employee-list/', true) ?>">

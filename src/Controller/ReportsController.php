@@ -5,6 +5,7 @@ use App\Controller\AppController;
 use Cake\Network\Request;
 use Cake\ORM\TableRegistry;
 use Cake\I18n\Time;
+use Cake\Network\Exception\NotFoundException;
 
 class ReportsController extends AppController
 {
@@ -29,7 +30,7 @@ class ReportsController extends AppController
         $employees = TableRegistry::get('Employees')->find()
                                                     ->select(['id', 'first_name', 'last_name'])
                                                     ->where(['active' => 1]);
-        if (!empty($shopId) && $shopId != 'all') {
+        if (!empty($shopId)) {
             $employees = $employees->where(['shops_id' => $shopId]);
         }
 
@@ -56,5 +57,26 @@ class ReportsController extends AppController
             ['shops', 'employees', 'conditions'],
             [$shops, $employees, $conditions]
         );
+    }
+
+    public function employeeList($shopId) {
+        if (!$this->request->is('ajax')) {
+            throw new NotFoundException();
+        }
+
+        $employees = TableRegistry::get('Employees')->find()
+                                                    ->select(['id', 'first_name', 'last_name'])
+                                                    ->where(['active' => 1]);
+        if (!empty($shopId)) {
+            $employees->where(['shops_id' => $shopId]);
+        }
+
+        $result = array();
+        foreach ($employees as $employee) {
+            $result[$employee->id] = $employee->first_name.' '.$employee->last_name;
+        }
+
+        $this->set('result', $result);
+        $this->set('_serialize', 'result');
     }
 }

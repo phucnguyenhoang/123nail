@@ -100,6 +100,7 @@ Router::scope('/services', function ($routes) {
 
 Router::scope('/reports', function ($routes) {
     $routes->connect('/salary', ['controller' => 'Reports', 'action' => 'salary']);
+    $routes->connect('/employee-list/:id', ['controller' => 'Reports', 'action' => 'employeeList'],  ['id' => '\d+', 'pass' => ['id']]);
 });
 
 
