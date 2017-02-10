@@ -53,9 +53,36 @@ class ReportsController extends AppController
             'toDate' => $toDate
         );
 
+        $query = TableRegistry::get('BillingsHasServices')->find();
+        $query->contain(['Employees', 'Billings']);
+        $query->select([
+            'employees_id',
+            'full_name' => $query->func()->concat([
+                'Employees.first_name' => 'identifier',
+                ' ',
+                'Employees.last_name' => 'identifier'
+            ]),
+            'tPrice' => $query->func()->sum('price'),
+            'tShopFee' => $query->func()->sum('shop_fee'),
+            'tTips' => $query->func()->sum('tips')
+        ])
+        ->group('employees_id')
+        ->where([
+            'Billings.billing_date >=' => $fromDate,
+            'Billings.billing_date <' => $toDate->addDays(1)
+        ]);
+        if (!empty($shopId)) {
+            $query->where(['Employees.shops_id' => $shopId]);
+        }
+        if (!empty($employeeId)) {
+            $query->where(['BillingsHasServices.employees_id' => $employeeId]);
+        }
+
+        $data = $query->all();
+
         $this->set(
-            ['shops', 'employees', 'conditions'],
-            [$shops, $employees, $conditions]
+            ['shops', 'employees', 'conditions', 'data'],
+            [$shops, $employees, $conditions, $data]
         );
     }
 

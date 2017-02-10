@@ -53,31 +53,40 @@
 </form>
 
 <div class="row">
-    <div class="col-sm-10 col-sm-offset-1 col-md-8 col-md-offset-2">
+    <div class="col-md-10 col-md-offset-1">
         <div class="table-responsive">
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
                         <th class="text-center">#</th>
-                        <th>Name</th>
-                        <th>Services</th>
-                        <th>Tips</th>
+                        <th class="text-center">Name</th>
+                        <th class="text-center">Services</th>
+                        <th class="text-center">Tips</th>
+                        <th class="text-center">Shop Fee</th>
+                        <th class="text-center">Total <span class="glyphicon glyphicon-usd"></span></th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <th class="text-center">1</th>
-                        <td>Sores Kanl</td>
-                        <td>200</td>
-                        <td>15</td>
-                        <td class="text-center w30">
-                            <button type="button" class="btn btn-xs btn-primary"><span class="glyphicon glyphicon-eye-open"></span></button>
-                        </td>
-                    </tr>
+                    <?php if ($data->count() <= 0) : ?>
+                        <tr class="warning"><td class="text-center" colspan="7">No data result</td></tr>
+                    <?php endif; ?>
+                    <?php foreach ($data as $n => $row) : ?>
+                        <tr>
+                            <th class="text-center"><?= $n+1 ?></th>
+                            <td><?= $row->full_name ?></td>
+                            <td class="text-right"><?= $row->tPrice ?></td>
+                            <td class="text-right"><?= (float)$row->tTips ?></td>
+                            <td class="text-right"><?= (float)$row->tShopFee ?></td>
+                            <th class="text-right"><?= $row->tPrice + (float)$row->tTips - (float)$row->tShopFee ?></th>
+                            <td class="text-center w30">
+                                <button type="button" class="btn btn-xs btn-primary"><span class="glyphicon glyphicon-eye-open"></span></button>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
                 </tbody>
             </table>
-        </div>
+        </div>        
     </div>
 </div>
 <input type="hidden" id="hidEmployeeUrl" value="<?= $this->Url->build('/reports/employee-list/', true) ?>">
